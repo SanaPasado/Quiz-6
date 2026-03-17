@@ -12,13 +12,15 @@ export const askChatbot = (message) => async (dispatch, getState) => {
   });
 
   dispatch({ type: CHAT_ADD_MESSAGE, payload: { sender: "bot", text: reply } });
-  dispatch({
-    type: SUBSCRIPTION_MY_SET,
-    payload: {
-      ...getState().subscriptionState.mySubscription,
-      usage_left,
-    },
-  });
+  if (usage_left !== null && usage_left !== undefined) {
+    dispatch({
+      type: SUBSCRIPTION_MY_SET,
+      payload: {
+        ...getState().subscriptionState.mySubscription,
+        usage_left,
+      },
+    });
+  }
 };
 
 export const clearChatMessages = () => ({ type: CHAT_CLEAR_MESSAGES });

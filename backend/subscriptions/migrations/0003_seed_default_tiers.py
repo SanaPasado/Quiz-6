@@ -5,9 +5,9 @@ def seed_subscription_tiers(apps, schema_editor):
     SubscriptionTier = apps.get_model("subscriptions", "SubscriptionTier")
 
     default_tiers = [
-        {"name": "Tier 1", "price": "99.00", "max_usage": 3},
-        {"name": "Tier 2", "price": "149.00", "max_usage": 5},
-        {"name": "Tier 3", "price": "249.00", "max_usage": 10},
+        {"name": "Tier 1", "price": "150.00", "max_usage": 3},
+        {"name": "Tier 2", "price": "300.00", "max_usage": 5},
+        {"name": "Tier 3", "price": "450.00", "max_usage": 10},
     ]
 
     for tier in default_tiers:

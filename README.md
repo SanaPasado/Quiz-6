@@ -33,7 +33,10 @@ Combined repository for a React frontend and Django REST backend.
    - `copy .env.sample .env` (Windows)
 5. Run migrations:
    - `python manage.py migrate`
-6. Start backend server:
+6. Seed OG development data (users, services, tiers):
+   - `python manage.py seed_og_data`
+   - Optional password reset for existing seeded users: `python manage.py seed_og_data --reset-passwords`
+7. Start backend server:
    - `python manage.py runserver`
 
 Backend base routes:
@@ -66,6 +69,14 @@ Backend base routes:
 4. Paste into [frontend/.env](frontend/.env):
    - `REACT_APP_PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
 5. Restart the frontend dev server after editing `.env`.
+
+## PayPal Subscription Requirements
+1. Frontend requires `REACT_APP_PAYPAL_CLIENT_ID` in `frontend/.env`.
+2. Backend requires these in `backend/.env` for subscription verification:
+   - `PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
+   - `PAYPAL_CLIENT_SECRET=YOUR_CLIENT_SECRET`
+   - Optional sandbox override: `PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com`
+3. Ensure tiers have PayPal plan IDs (already set by subscription migrations) and rerun migrations if needed.
 
 ## Suggested Commit Message Sequence
 - `feat(backend): add role-based auth apps and API routes`

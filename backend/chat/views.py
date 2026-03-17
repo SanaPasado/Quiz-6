@@ -22,21 +22,44 @@ class IsAdmin(permissions.BasePermission):
 class AIChatbotView(APIView):
 	permission_classes = [permissions.IsAuthenticated]
 
+	ALLOWED_KEYWORDS = {
+		"notary",
+		"notarize",
+		"notarization",
+		"document",
+		"documents",
+		"affidavit",
+		"certification",
+		"certified",
+		"true copy",
+		"service",
+		"services",
+		"seller",
+		"subscription",
+		"subscriptions",
+		"usage",
+		"chatbot",
+		"order",
+		"orders",
+		"payment",
+		"payments",
+		"paypal",
+		"apply",
+		"application",
+		"dashboard",
+		"pricing",
+		"tier",
+		"tiers",
+	}
+
+	@classmethod
+	def _is_in_scope(cls, message):
+		lowered = message.lower()
+		return any(keyword in lowered for keyword in cls.ALLOWED_KEYWORDS)
+
 	@staticmethod
 	def _fallback_reply(message):
-		allowed_keywords = [
-			"notary",
-			"document",
-			"affidavit",
-			"certification",
-			"service",
-			"seller",
-			"subscription",
-			"order",
-			"paypal",
-		]
-		lowered = message.lower()
-		if not any(keyword in lowered for keyword in allowed_keywords):
+		if not AIChatbotView._is_in_scope(message):
 			return (
 				"I can only answer questions about notary and document services on this platform, "
 				"including service availability, seller applications, subscriptions, and orders."
@@ -108,6 +131,18 @@ class AIChatbotView(APIView):
 		message = str(request.data.get("message", "")).strip()
 		if not message:
 			return Response({"detail": "Message is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+		if not self._is_in_scope(message):
+			return Response(
+				{
+					"reply": (
+						"I can only answer notary and document service questions for this project "
+						"(services, sellers, subscriptions, orders, and payments)."
+					),
+					"usage_left": None,
+				},
+				status=status.HTTP_200_OK,
+			)
 
 		subscription = UserSubscription.objects.filter(user=request.user, is_active=True).first()
 		if not subscription:

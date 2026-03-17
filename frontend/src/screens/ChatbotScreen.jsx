@@ -35,6 +35,9 @@ export default function ChatbotScreen() {
       <Card className="shadow-sm">
         <Card.Body>
           <h3>AI Chatbot</h3>
+          <Alert variant="secondary">
+            This chatbot only answers notary and document service questions related to this project.
+          </Alert>
           {!mySubscription && (
             <Alert variant="warning">Active subscription required before using the chatbot.</Alert>
           )}

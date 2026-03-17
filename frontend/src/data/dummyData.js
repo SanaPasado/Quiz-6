@@ -77,7 +77,7 @@ export const initialServices = [
 ];
 
 export const initialSubscriptionTiers = [
-  { id: 1, name: "Tier 1", price: 99, max_usage: 3 },
-  { id: 2, name: "Tier 2", price: 179, max_usage: 5 },
-  { id: 3, name: "Tier 3", price: 299, max_usage: 10 },
+  { id: 1, name: "Tier 1", price: 150, max_usage: 3 },
+  { id: 2, name: "Tier 2", price: 300, max_usage: 5 },
+  { id: 3, name: "Tier 3", price: 450, max_usage: 10 },
 ];
