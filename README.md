@@ -1,84 +1,99 @@
 # Quiz 6 - Notary and Document Services Platform
 
-Combined repository for a React frontend and Django REST backend.
+Full-stack project for a notary/document services marketplace with a React frontend and Django REST backend.
 
 ## Tech Stack
-- Frontend: Create React App + React Bootstrap + Bootswatch + Redux
-- Backend: Django + Django REST Framework + JWT (SimpleJWT)
+- Frontend: Create React App, React Bootstrap, Redux
+- Backend: Django, Django REST Framework, SimpleJWT
 - Database: SQLite (development)
+- Payments: PayPal (one-time order checkout and subscription checkout)
+- AI: Gemini API (with strict domain guardrails)
 
-## Repository Structure
-- `frontend/`: User interface and Redux state
-- `backend/`: REST API and business logic
+## Project Structure
+- `frontend/` - React app, screens, Redux actions/reducers
+- `backend/` - Django apps, APIs, business logic, seed command
 
-## Key Features Implemented
-- Service list and details pages with card design
-- Sign in (email-based) and sign up with required fields and validation
-- Role model: Admin, Seller, User
-- Seller application flow with Admin approve/decline and modal inputs
-- Admin users management table (edit/delete)
-- Seller dashboard for add/manage services
-- Orders logging flow with PayPal button integration placeholders
-- User profile page with user details and orders table
-- Subscription tiers (3/5/10 chatbot usage) and admin subscription transactions table
-- AI chatbot limited to notary/document domain and gated by subscription usage
-- Protected routes (redirect to login when not signed in)
+## Implemented Features
+- User auth (email-based), profile, and role system (Admin, Seller, User)
+- Seller application and admin approval/decline
+- Service listing and detail pages
+- Seller dashboard for managing services
+- Orders and payment tracking
+- Subscription plans for chatbot usage
+- Admin subscription list view
+- AI chatbot that only answers notary/document-service related questions
+
+## Subscription Pricing
+- Tier 1: PHP 150.00 (3 chatbot uses)
+- Tier 2: PHP 300.00 (5 chatbot uses)
+- Tier 3: PHP 450.00 (10 chatbot uses)
 
 ## Backend Setup
 1. Open terminal in `backend/`.
-2. Create and activate virtual environment (recommended).
-3. Install packages:
+2. Create and activate a virtual environment.
+3. Install dependencies:
    - `pip install -r requirements.txt`
-4. Copy env template:
-   - `copy .env.sample .env` (Windows)
+4. Copy environment template:
+   - `copy .env.sample .env`
 5. Run migrations:
    - `python manage.py migrate`
-6. Seed OG development data (users, services, tiers):
+6. Seed OG data (users, services, subscription tiers):
    - `python manage.py seed_og_data`
-   - Optional password reset for existing seeded users: `python manage.py seed_og_data --reset-passwords`
-7. Start backend server:
+   - Optional reset passwords for existing OG users:
+   - `python manage.py seed_og_data --reset-passwords`
+7. Start backend:
    - `python manage.py runserver`
 
-Backend base routes:
+### Backend API Base Routes
 - `/api/v1/users/`
 - `/api/v1/applications/`
 - `/api/v1/services/`
 - `/api/v1/orders/`
-- `/api/v1/chat/`
 - `/api/v1/subscriptions/`
+- `/api/v1/chat/`
 
 ## Frontend Setup
 1. Open terminal in `frontend/`.
 2. Install dependencies:
    - `npm install`
-3. Copy env template:
-   - `copy .env.example .env` (Windows)
-4. Start app:
+3. Copy environment template:
+   - `copy .env.sample .env`
+4. Start frontend:
    - `npm start`
 
-## Notes
-- Frontend is wired to backend APIs (`/api/v1/*`) and no longer depends on dummy seed reducers.
-- Service checkout uses one-time PayPal payment in the service detail screen.
-- Subscription is used for AI chatbot usage gating only.
-- Do not commit `.env`; use `.env.example` only.
+## OG Seed Data
+The `seed_og_data` command creates/updates:
+- Admin, User, Seller accounts
+- Sample notary/document services
+- Service sample images
+- Subscription tiers with current pricing
 
-## PayPal Client ID (for one-time service payment)
-1. Go to the PayPal Developer Dashboard.
-2. Create or open a REST app under **Sandbox** for development.
-3. Copy the app **Client ID**.
-4. Paste into [frontend/.env](frontend/.env):
-   - `REACT_APP_PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
-5. Restart the frontend dev server after editing `.env`.
+This command is idempotent, so it is safe to run multiple times.
 
-## PayPal Subscription Requirements
-1. Frontend requires `REACT_APP_PAYPAL_CLIENT_ID` in `frontend/.env`.
-2. Backend requires these in `backend/.env` for subscription verification:
-   - `PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
-   - `PAYPAL_CLIENT_SECRET=YOUR_CLIENT_SECRET`
-   - Optional sandbox override: `PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com`
-3. Ensure tiers have PayPal plan IDs (already set by subscription migrations) and rerun migrations if needed.
+## PayPal Configuration
 
-## Suggested Commit Message Sequence
-- `feat(backend): add role-based auth apps and API routes`
-- `feat(frontend): implement screens, redux, and protected routing`
-- `docs: add setup guide and env samples`
+### Frontend
+Set in `frontend/.env`:
+- `REACT_APP_PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
+
+### Backend
+Set in `backend/.env`:
+- `PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET=YOUR_CLIENT_SECRET`
+- `PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com` (sandbox)
+
+If these are missing, PayPal subscription checkout will not proceed.
+
+## AI Chatbot Scope Rules
+The chatbot is intentionally restricted to this project domain:
+- Notary and document services
+- Service listings and seller concerns
+- Subscriptions, usage, and chatbot access
+- Orders and payment workflow on this platform
+
+Out-of-scope prompts are politely refused.
+
+## Important Notes
+- Do not commit `.env` files.
+- Use sandbox PayPal credentials for development.
+- Run `python manage.py seed_og_data` after changing seed values.
