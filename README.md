@@ -31,17 +31,18 @@ Full-stack project for a notary/document services marketplace with a React front
 ## Backend Setup
 1. Open terminal in `backend/`.
 2. Create and activate a virtual environment.
-3. Install dependencies:
+   (delete venv and recreate one if there is existing one that has errors)
+4. Install dependencies:
    - `pip install -r requirements.txt`
-4. Copy environment template:
+5. Copy environment template:
    - `copy .env.sample .env`
-5. Run migrations:
+6. Run migrations:
    - `python manage.py migrate`
-6. Seed OG data (users, services, subscription tiers):
+7. Seed OG data (users, services, subscription tiers):
    - `python manage.py seed_og_data`
    - Optional reset passwords for existing OG users:
    - `python manage.py seed_og_data --reset-passwords`
-7. Start backend:
+8. Start backend:
    - `python manage.py runserver`
 
 ### Backend API Base Routes
