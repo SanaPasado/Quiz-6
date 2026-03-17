@@ -5,6 +5,7 @@ class SubscriptionTier(models.Model):
 	name = models.CharField(max_length=100, unique=True)
 	price = models.DecimalField(max_digits=10, decimal_places=2)
 	max_usage = models.PositiveIntegerField()
+	paypal_plan_id = models.CharField(max_length=120, blank=True, null=True)
 
 	def __str__(self):
 		return self.name
@@ -15,6 +16,7 @@ class UserSubscription(models.Model):
 	tier = models.ForeignKey(SubscriptionTier, on_delete=models.CASCADE, related_name="subscriptions")
 	usage_left = models.PositiveIntegerField()
 	is_active = models.BooleanField(default=True)
+	paypal_subscription_id = models.CharField(max_length=120, blank=True, null=True, unique=True)
 	subscribed_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):

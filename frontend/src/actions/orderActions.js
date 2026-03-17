@@ -1,18 +1,25 @@
-import { ORDER_CREATE } from "../constants/orderConstants";
+import { apiRequest } from "../api";
+import { ORDER_CREATE, ORDER_SET } from "../constants/orderConstants";
 
-export const createOrder = (orderData) => (dispatch, getState) => {
-  const { orders } = getState().orderState;
-  const { userInfo } = getState().userState;
+const getToken = (getState) => getState().userState.userInfo?.access;
 
-  const newOrder = {
-    id: Date.now(),
-    buyer_id: userInfo.id,
-    buyer_name: `${userInfo.first_name} ${userInfo.last_name}`,
-    ...orderData,
-    date_purchased: new Date().toISOString(),
-  };
+export const fetchOrderHistory = () => async (dispatch, getState) => {
+  const orders = await apiRequest("/orders/history/", {
+    token: getToken(getState),
+  });
+  dispatch({ type: ORDER_SET, payload: orders });
+};
 
-  const updatedOrders = [...orders, newOrder];
-  localStorage.setItem("orders", JSON.stringify(updatedOrders));
-  dispatch({ type: ORDER_CREATE, payload: updatedOrders });
+export const createOrder = (orderData) => async (dispatch, getState) => {
+  const newOrder = await apiRequest("/orders/create/", {
+    method: "POST",
+    body: {
+      service: orderData.service_id,
+      paypal_transaction_id: orderData.paypal_transaction_id,
+      price_paid: orderData.price_paid,
+    },
+    token: getToken(getState),
+  });
+
+  dispatch({ type: ORDER_CREATE, payload: newOrder });
 };

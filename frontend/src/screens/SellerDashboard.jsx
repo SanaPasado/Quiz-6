@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Button, Card, Col, Container, Form, Row, Table } from "react-bootstrap";
+import { Alert, Button, Card, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 
 import { createService, deleteService, updateService } from "../actions/serviceActions";
@@ -17,22 +17,60 @@ export default function SellerDashboard() {
   const { services } = useSelector((state) => state.serviceState);
   const { userInfo } = useSelector((state) => state.userState);
   const [formData, setFormData] = useState(initialForm);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const myServices = useMemo(
-    () => services.filter((service) => service.seller_id === userInfo.id),
+    () => services.filter((service) => service.seller === userInfo.id),
     [services, userInfo.id]
   );
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
-    dispatch(createService({ ...formData, price: Number(formData.price), rating: 4.8 }));
-    setFormData(initialForm);
+    setError("");
+    setMessage("");
+
+    try {
+      await dispatch(createService({ ...formData, price: Number(formData.price) }));
+      setFormData(initialForm);
+      setMessage("Service created successfully.");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
-  const editHandler = (service) => {
+  const editHandler = async (service) => {
     const nextPrice = Number(window.prompt("Update price", service.price));
-    if (!nextPrice) return;
-    dispatch(updateService(service.id, { price: nextPrice }));
+    if (Number.isNaN(nextPrice) || nextPrice <= 0) return;
+
+    setError("");
+    setMessage("");
+
+    try {
+      await dispatch(
+        updateService(service.id, {
+          service_name: service.service_name,
+          description: service.description,
+          price: nextPrice,
+          duration_of_service: service.duration_of_service,
+        })
+      );
+      setMessage("Service updated successfully.");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const deleteHandler = async (serviceId) => {
+    setError("");
+    setMessage("");
+
+    try {
+      await dispatch(deleteService(serviceId));
+      setMessage("Service deleted successfully.");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -42,6 +80,8 @@ export default function SellerDashboard() {
           <Card className="shadow-sm mb-4">
             <Card.Body>
               <h4>Add New Service</h4>
+              {message && <Alert variant="success">{message}</Alert>}
+              {error && <Alert variant="danger">{error}</Alert>}
               <Form onSubmit={submitHandler}>
                 <Form.Group className="mb-2">
                   <Form.Label>Service Name</Form.Label>
@@ -80,11 +120,10 @@ export default function SellerDashboard() {
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <Form.Label>Image URL</Form.Label>
+                  <Form.Label>Image URL (optional)</Form.Label>
                   <Form.Control
                     value={formData.sample_image}
                     onChange={(e) => setFormData({ ...formData, sample_image: e.target.value })}
-                    required
                   />
                 </Form.Group>
                 <Button type="submit" className="w-100">
@@ -117,7 +156,7 @@ export default function SellerDashboard() {
                         <Button size="sm" className="me-2" onClick={() => editHandler(service)}>
                           Edit
                         </Button>
-                        <Button size="sm" variant="danger" onClick={() => dispatch(deleteService(service.id))}>
+                        <Button size="sm" variant="danger" onClick={() => deleteHandler(service.id)}>
                           Delete
                         </Button>
                       </td>

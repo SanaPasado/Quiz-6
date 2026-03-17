@@ -6,7 +6,7 @@ from .models import SubscriptionTier, UserSubscription
 class SubscriptionTierSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionTier
-        fields = ["id", "name", "price", "max_usage"]
+        fields = ["id", "name", "price", "max_usage", "paypal_plan_id"]
 
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
@@ -16,4 +16,12 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserSubscription
-        fields = ["id", "user", "tier", "usage_left", "is_active", "subscription_date"]
+        fields = [
+            "id",
+            "user",
+            "tier",
+            "usage_left",
+            "is_active",
+            "subscription_date",
+            "paypal_subscription_id",
+        ]

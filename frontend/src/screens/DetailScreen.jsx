@@ -6,6 +6,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { createOrder } from "../actions/orderActions";
 
+const fallbackImage = "https://placehold.co/800x500?text=Service+Image";
+
 export default function DetailScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,17 +18,21 @@ export default function DetailScreen() {
 
   const service = services.find((item) => String(item.id) === String(id));
 
+  if (!services.length) {
+    return <Alert variant="info">Loading service...</Alert>;
+  }
+
   if (!service) {
     return <Alert variant="danger">Service not found.</Alert>;
   }
 
   const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID || "test";
+  const hasRealPaypalClientId = clientId !== "test";
 
-  const onPaymentSuccess = (transactionId = `TXN-${Date.now()}`) => {
-    dispatch(
+  const onPaymentSuccess = async (transactionId = `TXN-${Date.now()}`) => {
+    await dispatch(
       createOrder({
         service_id: service.id,
-        service_name: service.service_name,
         paypal_transaction_id: transactionId,
         price_paid: service.price,
       })
@@ -38,7 +44,11 @@ export default function DetailScreen() {
     <Container>
       <Row>
         <Col md={6}>
-          <img src={service.sample_image} alt={service.service_name} className="img-fluid rounded shadow-sm" />
+          <img
+            src={service.sample_image || fallbackImage}
+            alt={service.service_name}
+            className="img-fluid rounded shadow-sm"
+          />
         </Col>
         <Col md={6}>
           <Card className="shadow-sm">
@@ -58,6 +68,11 @@ export default function DetailScreen() {
                 <strong>Name of the expert:</strong> {service.name_of_the_expert}
               </p>
               {!userInfo && <Alert variant="warning">Sign in first to avail this service.</Alert>}
+              {!hasRealPaypalClientId && (
+                <Alert variant="warning">
+                  Set <strong>REACT_APP_PAYPAL_CLIENT_ID</strong> to enable real one-time service payments.
+                </Alert>
+              )}
               {userInfo && (
                 <PayPalScriptProvider options={{ "client-id": clientId, currency: "PHP" }}>
                   <PayPalButtons
@@ -77,14 +92,9 @@ export default function DetailScreen() {
                         onPaymentSuccess(data.orderID);
                       })
                     }
-                    onError={() => onPaymentSuccess()}
+                    onError={() => undefined}
                   />
                 </PayPalScriptProvider>
-              )}
-              {userInfo && (
-                <Button className="mt-2" variant="outline-primary" onClick={() => onPaymentSuccess()}>
-                  Demo Checkout (Fallback)
-                </Button>
               )}
             </Card.Body>
           </Card>

@@ -6,8 +6,6 @@ export default function UserProfile() {
   const { userInfo } = useSelector((state) => state.userState);
   const { orders } = useSelector((state) => state.orderState);
 
-  const myOrders = orders.filter((order) => order.buyer_id === userInfo.id);
-
   return (
     <Container>
       <Row>
@@ -47,7 +45,7 @@ export default function UserProfile() {
                   </tr>
                 </thead>
                 <tbody>
-                  {myOrders.map((order) => (
+                  {orders.map((order) => (
                     <tr key={order.id}>
                       <td>{order.service_name}</td>
                       <td>{order.paypal_transaction_id}</td>

@@ -20,12 +20,13 @@ export default function SignUp() {
     confirm_password: "",
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const changeHandler = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
     setError("");
 
@@ -57,8 +58,15 @@ export default function SignUp() {
       return;
     }
 
-    dispatch(register(formData));
-    navigate("/");
+    try {
+      setLoading(true);
+      await dispatch(register(formData));
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,8 +132,8 @@ export default function SignUp() {
                     onChange={changeHandler}
                   />
                 </Form.Group>
-                <Button type="submit" className="w-100">
-                  Register
+                <Button type="submit" className="w-100" disabled={loading}>
+                  {loading ? "Registering..." : "Register"}
                 </Button>
               </Form>
             </Card.Body>

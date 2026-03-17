@@ -11,8 +11,9 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
     setError("");
     if (!email || !password) {
@@ -21,10 +22,13 @@ export default function SignIn() {
     }
 
     try {
-      dispatch(signin(email, password));
+      setLoading(true);
+      await dispatch(signin(email, password));
       navigate("/");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,8 +49,8 @@ export default function SignIn() {
                   <Form.Label>Password</Form.Label>
                   <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </Form.Group>
-                <Button type="submit" className="w-100">
-                  Sign In
+                <Button type="submit" className="w-100" disabled={loading}>
+                  {loading ? "Signing In..." : "Sign In"}
                 </Button>
               </Form>
               <div className="mt-3">

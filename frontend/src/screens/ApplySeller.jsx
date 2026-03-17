@@ -9,11 +9,11 @@ export default function ApplySeller() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const submitHandler = () => {
+  const submitHandler = async () => {
     setMessage("");
     setError("");
     try {
-      dispatch(applySeller());
+      await dispatch(applySeller());
       setMessage("Seller application submitted. Awaiting admin approval.");
     } catch (err) {
       setError(err.message);

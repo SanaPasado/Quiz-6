@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Button, Container, Form, Modal, Nav, Table } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 
-import { updateApplications, updateUsers } from "../actions/userActions";
+import { approveApplication, declineApplication, deleteUser, updateUser } from "../actions/userActions";
 
 export default function UserScreen() {
   const dispatch = useDispatch();
@@ -16,18 +16,14 @@ export default function UserScreen() {
 
   const nonAdminUsers = useMemo(() => users.filter((user) => user.role !== "Admin"), [users]);
 
-  const deleteUserHandler = (userId) => {
-    const nextUsers = users.filter((user) => user.id !== userId);
-    dispatch(updateUsers(nextUsers));
+  const deleteUserHandler = async (userId) => {
+    await dispatch(deleteUser(userId));
   };
 
-  const editUserHandler = (userItem) => {
+  const editUserHandler = async (userItem) => {
     const updatedFirstName = window.prompt("Update first name", userItem.first_name);
     if (!updatedFirstName) return;
-    const nextUsers = users.map((user) =>
-      user.id === userItem.id ? { ...user, first_name: updatedFirstName } : user
-    );
-    dispatch(updateUsers(nextUsers));
+    await dispatch(updateUser(userItem.id, { first_name: updatedFirstName }));
   };
 
   const openApproveModal = (applicationId) => {
@@ -40,29 +36,13 @@ export default function UserScreen() {
     setDeclineModal({ show: true, applicationId });
   };
 
-  const approveApplicationHandler = () => {
-    const application = sellerApplications.find((item) => item.id === approveModal.applicationId);
-    if (!application) return;
-
-    const nextApplications = sellerApplications.map((item) =>
-      item.id === application.id ? { ...item, status: "Approved", decline_reason: "" } : item
-    );
-    const nextUsers = users.map((user) =>
-      user.id === application.user_id ? { ...user, role: "Seller", merchant_id: merchantId || user.merchant_id } : user
-    );
-
-    dispatch(updateApplications(nextApplications));
-    dispatch(updateUsers(nextUsers));
+  const approveApplicationHandler = async () => {
+    await dispatch(approveApplication(approveModal.applicationId, merchantId));
     setApproveModal({ show: false, applicationId: null });
   };
 
-  const declineApplicationHandler = () => {
-    const nextApplications = sellerApplications.map((item) =>
-      item.id === declineModal.applicationId
-        ? { ...item, status: "Declined", decline_reason: declineReason || "Declined by admin" }
-        : item
-    );
-    dispatch(updateApplications(nextApplications));
+  const declineApplicationHandler = async () => {
+    await dispatch(declineApplication(declineModal.applicationId, declineReason));
     setDeclineModal({ show: false, applicationId: null });
   };
 
@@ -124,7 +104,7 @@ export default function UserScreen() {
               <tr key={application.id}>
                 <td>{application.first_name}</td>
                 <td>{application.last_name}</td>
-                <td>{application.email}</td>
+                <td>{application.user_email}</td>
                 <td>{application.status}</td>
                 <td>
                   <Button

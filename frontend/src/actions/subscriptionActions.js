@@ -1,37 +1,45 @@
-import { SUBSCRIPTION_SET } from "../constants/subscriptionConstants";
+import { apiRequest } from "../api";
+import {
+  SUBSCRIPTION_MY_SET,
+  SUBSCRIPTION_SET,
+  SUBSCRIPTION_TIERS_SET,
+} from "../constants/subscriptionConstants";
 
-export const subscribeTier = (tier) => (dispatch, getState) => {
-  const { subscriptions } = getState().subscriptionState;
-  const { userInfo } = getState().userState;
+const getToken = (getState) => getState().userState.userInfo?.access;
 
-  const newSubscription = {
-    id: Date.now(),
-    user_id: userInfo.id,
-    user: `${userInfo.first_name} ${userInfo.last_name}`,
-    tier: tier.name,
-    max_usage: tier.max_usage,
-    usage_left: tier.max_usage,
-    is_active: true,
-    subscription_date: new Date().toISOString(),
-  };
-
-  const filtered = subscriptions.filter((item) => item.user_id !== userInfo.id);
-  const updatedSubscriptions = [...filtered, newSubscription];
-  localStorage.setItem("subscriptions", JSON.stringify(updatedSubscriptions));
-  dispatch({ type: SUBSCRIPTION_SET, payload: updatedSubscriptions });
+export const fetchSubscriptionTiers = () => async (dispatch) => {
+  const tiers = await apiRequest("/subscriptions/tiers/");
+  dispatch({ type: SUBSCRIPTION_TIERS_SET, payload: tiers });
 };
 
-export const consumeChatUsage = () => (dispatch, getState) => {
-  const { subscriptions } = getState().subscriptionState;
-  const { userInfo } = getState().userState;
-
-  const updatedSubscriptions = subscriptions.map((item) => {
-    if (item.user_id === userInfo.id && item.is_active && item.usage_left > 0) {
-      return { ...item, usage_left: item.usage_left - 1 };
+export const fetchMySubscription = () => async (dispatch, getState) => {
+  try {
+    const subscription = await apiRequest("/subscriptions/mine/", {
+      token: getToken(getState),
+    });
+    dispatch({ type: SUBSCRIPTION_MY_SET, payload: subscription });
+  } catch (error) {
+    if (error.message === "No subscription found.") {
+      dispatch({ type: SUBSCRIPTION_MY_SET, payload: null });
+      return;
     }
-    return item;
+    throw error;
+  }
+};
+
+export const fetchAdminSubscriptions = () => async (dispatch, getState) => {
+  const subscriptions = await apiRequest("/subscriptions/admin/list/", {
+    token: getToken(getState),
+  });
+  dispatch({ type: SUBSCRIPTION_SET, payload: subscriptions });
+};
+
+export const subscribeTier = (tier, paypalSubscriptionId) => async (dispatch, getState) => {
+  const subscription = await apiRequest("/subscriptions/subscribe/", {
+    method: "POST",
+    body: { tier_id: tier.id, paypal_subscription_id: paypalSubscriptionId },
+    token: getToken(getState),
   });
 
-  localStorage.setItem("subscriptions", JSON.stringify(updatedSubscriptions));
-  dispatch({ type: SUBSCRIPTION_SET, payload: updatedSubscriptions });
+  dispatch({ type: SUBSCRIPTION_MY_SET, payload: subscription });
 };

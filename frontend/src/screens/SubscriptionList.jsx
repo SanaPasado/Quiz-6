@@ -1,9 +1,13 @@
 import React from "react";
-import { Container, Table } from "react-bootstrap";
+import { Alert, Container, Table } from "react-bootstrap";
 import { useSelector } from "react-redux";
 
 export default function SubscriptionList() {
   const { subscriptions } = useSelector((state) => state.subscriptionState);
+
+  if (!subscriptions.length) {
+    return <Alert variant="info">No subscription transactions found.</Alert>;
+  }
 
   return (
     <Container>

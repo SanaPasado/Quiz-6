@@ -3,28 +3,31 @@ import { Alert, Button, Card, Container, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 
 import { askChatbot } from "../actions/chatActions";
-import { consumeChatUsage } from "../actions/subscriptionActions";
 
 export default function ChatbotScreen() {
   const dispatch = useDispatch();
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const { messages } = useSelector((state) => state.chatState);
-  const { subscriptions } = useSelector((state) => state.subscriptionState);
+  const { mySubscription } = useSelector((state) => state.subscriptionState);
   const { userInfo } = useSelector((state) => state.userState);
 
-  const mySubscription = useMemo(
-    () => subscriptions.find((item) => item.user_id === userInfo.id && item.is_active),
-    [subscriptions, userInfo.id]
-  );
+  const usageLeft = useMemo(() => mySubscription?.usage_left ?? 0, [mySubscription]);
 
-  const submitHandler = (event) => {
+  const submitHandler = async (event) => {
     event.preventDefault();
+    setError("");
+
     if (!mySubscription || mySubscription.usage_left < 1) {
       return;
     }
-    dispatch(consumeChatUsage());
-    dispatch(askChatbot(message));
-    setMessage("");
+
+    try {
+      await dispatch(askChatbot(message));
+      setMessage("");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -35,8 +38,9 @@ export default function ChatbotScreen() {
           {!mySubscription && (
             <Alert variant="warning">Active subscription required before using the chatbot.</Alert>
           )}
+          {error && <Alert variant="danger">{error}</Alert>}
           {mySubscription && (
-            <Alert variant="info">Usage left: {mySubscription.usage_left}</Alert>
+            <Alert variant="info">Usage left: {usageLeft}</Alert>
           )}
           <div style={{ maxHeight: "300px", overflowY: "auto", marginBottom: "16px" }}>
             {messages.map((item, index) => (
@@ -54,7 +58,7 @@ export default function ChatbotScreen() {
                 required
               />
             </Form.Group>
-            <Button type="submit" disabled={!mySubscription || mySubscription.usage_left < 1}>
+            <Button type="submit" disabled={!mySubscription || usageLeft < 1}>
               Send
             </Button>
           </Form>

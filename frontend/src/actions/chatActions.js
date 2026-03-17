@@ -1,24 +1,24 @@
-import { CHAT_ADD_MESSAGE } from "../constants/chatConstants";
+import { apiRequest } from "../api";
+import { CHAT_ADD_MESSAGE, CHAT_CLEAR_MESSAGES } from "../constants/chatConstants";
+import { SUBSCRIPTION_MY_SET } from "../constants/subscriptionConstants";
 
-const allowedKeywords = [
-  "notary",
-  "document",
-  "affidavit",
-  "certified",
-  "service",
-  "seller",
-  "subscription",
-  "paypal",
-];
-
-export const askChatbot = (message) => (dispatch) => {
-  const normalized = message.toLowerCase();
-  const isAllowed = allowedKeywords.some((keyword) => normalized.includes(keyword));
-
-  const reply = isAllowed
-    ? "For notary and document concerns, review service scope, price, and duration on each listing before availing the service."
-    : "I only answer inquiries related to notary and document services on this platform.";
-
+export const askChatbot = (message) => async (dispatch, getState) => {
   dispatch({ type: CHAT_ADD_MESSAGE, payload: { sender: "user", text: message } });
+
+  const { reply, usage_left } = await apiRequest("/chat/ask/", {
+    method: "POST",
+    body: { message },
+    token: getState().userState.userInfo?.access,
+  });
+
   dispatch({ type: CHAT_ADD_MESSAGE, payload: { sender: "bot", text: reply } });
+  dispatch({
+    type: SUBSCRIPTION_MY_SET,
+    payload: {
+      ...getState().subscriptionState.mySubscription,
+      usage_left,
+    },
+  });
 };
+
+export const clearChatMessages = () => ({ type: CHAT_CLEAR_MESSAGES });

@@ -1,5 +1,5 @@
-import React from "react";
-import { Alert, Button, Card, Col, Container, Row } from "react-bootstrap";
+import React, { useState } from "react";
+import { Alert, Card, Col, Container, Row } from "react-bootstrap";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -9,17 +9,35 @@ export default function SubscriptionScreen() {
   const dispatch = useDispatch();
   const { tiers } = useSelector((state) => state.subscriptionState);
   const { userInfo } = useSelector((state) => state.userState);
-  const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID || "test";
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID || "";
+  const hasPaypalClientId = Boolean(clientId);
 
-  const subscribeHandler = (tier) => {
-    dispatch(subscribeTier(tier));
-    alert(`Subscribed to ${tier.name}`);
+  const subscribeHandler = async (tier, paypalSubscriptionId) => {
+    setMessage("");
+    setError("");
+
+    try {
+      await dispatch(subscribeTier(tier, paypalSubscriptionId));
+      setMessage(`Subscribed to ${tier.name}`);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
     <Container>
-      <h3 className="mb-4">Subscription Plans</h3>
+      <h3 className="mb-2">Chatbot Subscription Plans</h3>
+      <p className="text-muted">Subscriptions are used for AI chatbot usage only.</p>
       {!userInfo && <Alert variant="warning">Sign in first to subscribe.</Alert>}
+      {!hasPaypalClientId && (
+        <Alert variant="warning">
+          Set <strong>REACT_APP_PAYPAL_CLIENT_ID</strong> in frontend .env to enable PayPal subscription checkout.
+        </Alert>
+      )}
+      {message && <Alert variant="success">{message}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
       <Row>
         {tiers.map((tier) => (
           <Col md={4} key={tier.id} className="mb-4">
@@ -32,23 +50,25 @@ export default function SubscriptionScreen() {
                 <Card.Text>
                   <strong>Chat Usage:</strong> {tier.max_usage}
                 </Card.Text>
-                {userInfo && (
+                {userInfo && hasPaypalClientId && (
                   <PayPalScriptProvider options={{ "client-id": clientId, intent: "subscription" }}>
                     <PayPalButtons
                       style={{ layout: "vertical" }}
                       createSubscription={(data, actions) => {
-                        const fallbackPlanId = process.env.REACT_APP_PAYPAL_PLAN_ID || "P-TEST-PLAN";
-                        return actions.subscription.create({ plan_id: fallbackPlanId });
+                        if (!tier.paypal_plan_id) {
+                          throw new Error("This tier has no PayPal plan configured yet.");
+                        }
+                        return actions.subscription.create({ plan_id: tier.paypal_plan_id });
                       }}
-                      onApprove={() => subscribeHandler(tier)}
-                      onError={() => subscribeHandler(tier)}
+                      onApprove={(data) => subscribeHandler(tier, data.subscriptionID)}
+                      onError={() => setError("PayPal checkout failed. Please try again.")}
                     />
                   </PayPalScriptProvider>
                 )}
-                {userInfo && (
-                  <Button variant="outline-primary" className="mt-2" onClick={() => subscribeHandler(tier)}>
-                    Demo Subscribe (Fallback)
-                  </Button>
+                {userInfo && !tier.paypal_plan_id && (
+                  <Alert className="mt-auto mb-0" variant="secondary">
+                    Plan not configured yet for this tier.
+                  </Alert>
                 )}
               </Card.Body>
             </Card>

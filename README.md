@@ -49,19 +49,23 @@ Backend base routes:
 2. Install dependencies:
    - `npm install`
 3. Copy env template:
-   - `copy .env.sample .env` (Windows)
+   - `copy .env.example .env` (Windows)
 4. Start app:
    - `npm start`
 
-## Default Dummy Accounts
-- Admin: `admin@notaryhub.local` / `Admin1234!`
-- User: `user@notaryhub.local` / `User12345!`
-- Seller: `seller@notaryhub.local` / `Seller123!`
-
 ## Notes
-- This quiz build uses local dummy data/state in frontend to demonstrate flows quickly.
-- PayPal is wired with placeholder environment variables and includes fallback demo actions.
-- Do not commit `.env`; use `.env.sample` only.
+- Frontend is wired to backend APIs (`/api/v1/*`) and no longer depends on dummy seed reducers.
+- Service checkout uses one-time PayPal payment in the service detail screen.
+- Subscription is used for AI chatbot usage gating only.
+- Do not commit `.env`; use `.env.example` only.
+
+## PayPal Client ID (for one-time service payment)
+1. Go to the PayPal Developer Dashboard.
+2. Create or open a REST app under **Sandbox** for development.
+3. Copy the app **Client ID**.
+4. Paste into [frontend/.env](frontend/.env):
+   - `REACT_APP_PAYPAL_CLIENT_ID=YOUR_CLIENT_ID`
+5. Restart the frontend dev server after editing `.env`.
 
 ## Suggested Commit Message Sequence
 - `feat(backend): add role-based auth apps and API routes`

@@ -1,14 +1,20 @@
-import { SERVICE_CREATE, SERVICE_DELETE, SERVICE_UPDATE } from "../constants/serviceConstants";
-import { initialServices } from "../data/dummyData";
+import { SERVICE_CREATE, SERVICE_DELETE, SERVICE_SET, SERVICE_UPDATE } from "../constants/serviceConstants";
 
-const storedServices = JSON.parse(localStorage.getItem("services") || "null") || initialServices;
-
-export const serviceReducer = (state = { services: storedServices }, action) => {
+export const serviceReducer = (state = { services: [] }, action) => {
   switch (action.type) {
-    case SERVICE_CREATE:
-    case SERVICE_UPDATE:
-    case SERVICE_DELETE:
+    case SERVICE_SET:
       return { ...state, services: action.payload };
+    case SERVICE_CREATE:
+      return { ...state, services: [...state.services, action.payload] };
+    case SERVICE_UPDATE:
+      return {
+        ...state,
+        services: state.services.map((service) =>
+          service.id === action.payload.id ? action.payload : service
+        ),
+      };
+    case SERVICE_DELETE:
+      return { ...state, services: state.services.filter((service) => service.id !== action.payload) };
     default:
       return state;
   }

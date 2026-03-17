@@ -1,3 +1,4 @@
+export const SERVICE_SET = "SERVICE_SET";
 export const SERVICE_CREATE = "SERVICE_CREATE";
 export const SERVICE_UPDATE = "SERVICE_UPDATE";
 export const SERVICE_DELETE = "SERVICE_DELETE";

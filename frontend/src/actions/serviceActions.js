@@ -1,34 +1,45 @@
-import { SERVICE_CREATE, SERVICE_DELETE, SERVICE_UPDATE } from "../constants/serviceConstants";
+import { apiRequest } from "../api";
+import { SERVICE_CREATE, SERVICE_DELETE, SERVICE_SET, SERVICE_UPDATE } from "../constants/serviceConstants";
 
-export const createService = (serviceData) => (dispatch, getState) => {
-  const { services } = getState().serviceState;
-  const { userInfo } = getState().userState;
+const getToken = (getState) => getState().userState.userInfo?.access;
 
-  const newService = {
-    id: Date.now(),
-    ...serviceData,
-    seller_id: userInfo.id,
-    name_of_the_expert: `${userInfo.first_name} ${userInfo.last_name}`,
-    rating: 4.8,
+export const fetchServices = () => async (dispatch) => {
+  const services = await apiRequest("/services/list/");
+  dispatch({ type: SERVICE_SET, payload: services });
+};
+
+export const createService = (serviceData) => async (dispatch, getState) => {
+  const payload = {
+    service_name: serviceData.service_name,
+    description: serviceData.description,
+    price: serviceData.price,
+    duration_of_service: serviceData.duration_of_service,
   };
 
-  const updatedServices = [...services, newService];
-  localStorage.setItem("services", JSON.stringify(updatedServices));
-  dispatch({ type: SERVICE_CREATE, payload: updatedServices });
+  const createdService = await apiRequest("/services/manage/", {
+    method: "POST",
+    body: payload,
+    token: getToken(getState),
+  });
+
+  dispatch({ type: SERVICE_CREATE, payload: createdService });
 };
 
-export const updateService = (serviceId, serviceData) => (dispatch, getState) => {
-  const { services } = getState().serviceState;
-  const updatedServices = services.map((service) =>
-    service.id === serviceId ? { ...service, ...serviceData } : service
-  );
-  localStorage.setItem("services", JSON.stringify(updatedServices));
-  dispatch({ type: SERVICE_UPDATE, payload: updatedServices });
+export const updateService = (serviceId, serviceData) => async (dispatch, getState) => {
+  const updatedService = await apiRequest(`/services/manage/${serviceId}/`, {
+    method: "PUT",
+    body: serviceData,
+    token: getToken(getState),
+  });
+
+  dispatch({ type: SERVICE_UPDATE, payload: updatedService });
 };
 
-export const deleteService = (serviceId) => (dispatch, getState) => {
-  const { services } = getState().serviceState;
-  const updatedServices = services.filter((service) => service.id !== serviceId);
-  localStorage.setItem("services", JSON.stringify(updatedServices));
-  dispatch({ type: SERVICE_DELETE, payload: updatedServices });
+export const deleteService = (serviceId) => async (dispatch, getState) => {
+  await apiRequest(`/services/manage/${serviceId}/`, {
+    method: "DELETE",
+    token: getToken(getState),
+  });
+
+  dispatch({ type: SERVICE_DELETE, payload: serviceId });
 };
